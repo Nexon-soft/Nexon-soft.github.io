@@ -414,7 +414,7 @@ authForm.addEventListener('submit',async e=>{
 });
 document.getElementById('adminLogoutBtn').addEventListener('click',async()=>{if(supabaseClient)await supabaseClient.auth.signOut();isAdmin=false;adminPanel.hidden=true;requestPanel.hidden=false;document.getElementById('showAdminLogin').hidden=false;document.getElementById('showAdminLogin').textContent='Acceso administración';clearSensitiveFields();notify('Sesión de administración cerrada.');});
 document.getElementById('contactForm').addEventListener('submit',async e=>{
- e.preventDefault();const form=e.currentTarget,button=document.getElementById('sendContactBtn'),fd=new FormData(form);
+ e.preventDefault();const form=e.currentTarget,button=document.getElementById('sendContactBtn'),fd=new FormData(form);let redirecting=false;
  const obligatorios=['name','email','country','phone','interest','message'];
  if(obligatorios.some(c=>!String(fd.get(c)||'').trim())){notify('Completa todos los campos para enviar la consulta.');return;}
  button.disabled=true;button.textContent='Enviando…';
@@ -424,9 +424,9 @@ document.getElementById('contactForm').addEventListener('submit',async e=>{
   const googleForm=document.createElement('form');googleForm.method='POST';googleForm.action=GOOGLE_FORM_URL;googleForm.target='googleFormTarget';googleForm.hidden=true;
   Object.entries(GOOGLE_FORM_FIELDS).forEach(([localName,googleName])=>{const input=document.createElement('input');input.name=googleName;input.value=String(fd.get(localName)||'').trim();googleForm.appendChild(input);});
   document.body.appendChild(googleForm);googleForm.submit();googleForm.remove();
-  form.reset();notify('Solicitud enviada correctamente. Te responderemos lo antes posible.');
+  redirecting=true;button.textContent='Redirigiendo…';setTimeout(()=>window.location.assign('gracias.html'),700);
  }catch(error){console.error(error);notify('No se ha podido enviar la solicitud. Inténtalo de nuevo más tarde.');}
- finally{button.disabled=false;button.textContent='Enviar solicitud →';}
+ finally{if(!redirecting){button.disabled=false;button.textContent='Enviar solicitud →';}}
 });
 if(supabaseClient){supabaseClient.auth.onAuthStateChange(()=>{updateSession()});updateSession();}
 </script>
