@@ -176,7 +176,7 @@ body{background:linear-gradient(180deg,#fff 0%,#f9fbff 100%)}.announcement{backg
 <section class="section" id="contacto">
  <div class="wrap contact-grid">
   <div class="contact-copy"><span class="kicker">Contacto</span><h2>Cuéntanos qué necesitas.</h2><p>¿Quieres información sobre un programa, solicitar una demostración o plantear una solución para tu negocio? Déjanos los detalles.</p>
-   <div class="contact-points"><div class="contact-point"><span>✉</span><div>Consulta comercial<small style="display:block;color:var(--muted);font-weight:500">&nbsp;</small></div></div><div class="contact-point"><span>↗</span><div>Compra flexible<small style="display:block;color:var(--muted);font-weight:500">Online o bajo consulta, según el producto</small></div></div></div>
+   <div class="contact-points"><div class="contact-point"><span>↗</span><div>Compra flexible<small style="display:block;color:var(--muted);font-weight:500">Online o bajo consulta, según el producto</small></div></div></div>
   </div>
   <div class="contact-form">
    <div id="requestPanel">
@@ -287,8 +287,9 @@ document.getElementById('productModalRequest').addEventListener('click',()=>{con
 document.getElementById('year').textContent=new Date().getFullYear();
 const toast=document.getElementById('toast');
 function notify(message){toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),6500)}
-// FORMULARIO: los avisos se envían a Gmail mediante FormSubmit, sin Supabase.
-const FORMULARIO_DESTINO='nexosoft74@gmail.com';
+// FORMULARIO: las solicitudes se registran directamente en Google Forms, sin Supabase.
+const GOOGLE_FORM_URL='https://docs.google.com/forms/d/e/1FAIpQLSfqVCMkM9tOe3rP_2M3UeBx0p_SM9Vqlycz5J2pjG8U8bdlFA/formResponse';
+const GOOGLE_FORM_FIELDS={name:'entry.202947366',email:'entry.392524019',country:'entry.2123680823',phone:'entry.1419572338',interest:'entry.814792852',message:'entry.2094141475'};
 let supabaseClient=null;
 const authForm=document.getElementById('authForm');
 const authPanel=document.getElementById('authPanel');
@@ -418,8 +419,11 @@ document.getElementById('contactForm').addEventListener('submit',async e=>{
  if(obligatorios.some(c=>!String(fd.get(c)||'').trim())){notify('Completa todos los campos para enviar la consulta.');return;}
  button.disabled=true;button.textContent='Enviando…';
  try{
-  const respuesta=await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(FORMULARIO_DESTINO)}`,{method:'POST',headers:{Accept:'application/json'},body:fd});
-  if(!respuesta.ok)throw new Error('No se recibió confirmación del servicio de correo.');
+  let target=document.getElementById('googleFormTarget');
+  if(!target){target=document.createElement('iframe');target.name='googleFormTarget';target.id='googleFormTarget';target.hidden=true;document.body.appendChild(target);}
+  const googleForm=document.createElement('form');googleForm.method='POST';googleForm.action=GOOGLE_FORM_URL;googleForm.target='googleFormTarget';googleForm.hidden=true;
+  Object.entries(GOOGLE_FORM_FIELDS).forEach(([localName,googleName])=>{const input=document.createElement('input');input.name=googleName;input.value=String(fd.get(localName)||'').trim();googleForm.appendChild(input);});
+  document.body.appendChild(googleForm);googleForm.submit();googleForm.remove();
   form.reset();notify('Solicitud enviada correctamente. Te responderemos lo antes posible.');
  }catch(error){console.error(error);notify('No se ha podido enviar la solicitud. Inténtalo de nuevo más tarde.');}
  finally{button.disabled=false;button.textContent='Enviar solicitud →';}
